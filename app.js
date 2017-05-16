@@ -20,41 +20,40 @@ const quiz = {
     }
   ],
 
-  userAnswer: [],
+  userAnswer: [], ///////////REVISIT THIS TO REWORK AS AN ARRAY OF NUMBERS LISTING THE ANSWER CHOICES
   correctAnswers: [],
-  currentQuestion: null
-
-};
+  currentQuestion: null,
+  idNumber: 0,
+}
 
 //////////////////////////MOD FUNCTIONS//////////////////////////////////
 
-  function selectAnswer(answer){
-   quiz.userAnswer.push(answer);
+  function selectAnswer(state, answer){
+   state.userAnswer.push(answer);
   }
 
-  let idNumber = 0;
   //Note to come back to this and put it in the state(currentQuestion)
-  function questionsIdIteration(){
-      idNumber++;
-      return idNumber;
+  function questionsIdIteration(state){
+      state.idNumber++;                  //////////////////////////////////FIX ALL IDNUMBERS
+      return state.idNumber;
   }
 
   //Note to come back and combine questionsIDIteration and nextQuestion
 
-  function nextQuestion() {    
-    if(idNumber === 3) {
+  function nextQuestion(state) {    
+    if(state.idNumber === 3) {
       console.assert('quiz done');
       // call a function, maybe,to dispaly ansers or ....
     } else {
       console.assert('quiz not done, next question. Please');
-      return quiz.questions[idNumber].question;
+      return state.questions[state.idNumber].question;
     }
      
   }
 
-  function correctAnswerChecker(userAnswer, correctAnswer) {
+  function correctAnswerChecker(state, userAnswer, correctAnswer) {
     if(userAnswer === correctAnswer) {
-        quiz.correctAnswers.push(userAnswer);
+        state.correctAnswers.push(userAnswer);
         return true;
     } else {
       return false;
@@ -65,14 +64,15 @@ const quiz = {
                 answerCounter = $('div.js-answer-counter'),
                  correctCounter = $('div.js-correct-counter'), 
                  state = quiz)=>{
-      const path= state.questions[idNumber].answer;
+
+      const path= state.questions[state.idNumber].answer;
       const numberOfQuestions = quiz.questions.length;
       const numberOfCorrectQuestions = quiz.correctAnswers.length;//LOOKIE HERE NAEEM!!!
-      const answerBox = `<p>Answered so far: ${idNumber}/${numberOfQuestions}</p>`;
+      const answerBox = `<p>Answered so far: ${state.idNumber}/${numberOfQuestions}</p>`;
       const correctBox = `<p>Correct so far: ${numberOfCorrectQuestions}/${numberOfQuestions}</p>`;
       const question =  
         ` <ul>
-          <li>${state.questions[idNumber].question}</li>
+          <li>${state.questions[state.idNumber].question}</li>
             <form id="js-current-question">
                 <p>${path[0]}</p> <input type="radio" name="Answers" value="${path[0]}"><br>
                 <p>${path[1]}</p> <input type="radio" name="Answers" value="${path[1]}"><br>
@@ -81,19 +81,49 @@ const quiz = {
                 <button type='submit' id="submit">Submit</button>
             </form>
         </ul>`;
+     
+
     element.html(question);
     answerCounter.html(answerBox);
     correctCounter.html(correctBox);
   }
 
-  const renderCounters = (answerCounter = $('div.js-answer-counter'),
-                 correctCounter = $('div.js-correct-counter'), 
-                 state = quiz) => {
+
+
+
+///////////////////////////////////RENDER COUNTER//////////////////////////////////////////////////
+
+
+
+  const renderCounters = (state, answerCounter = $('div.js-answer-counter'),
+                 correctCounter = $('div.js-correct-counter'), checkedVal = $('input[name="Answers"]:checked').val()
+                 ) => {
     const numberOfQuestions = state.questions.length;
     const numberOfCorrectQuestions = state.correctAnswers.length;
-    const answerBox = `<p>Answered so far: ${idNumber}/${numberOfQuestions}</p>`;
+    const answerBox = `<p>Answered so far: ${state.idNumber}/${numberOfQuestions}</p>`;
     const correctBox = `<p>Correct so far: ${numberOfCorrectQuestions}/${numberOfQuestions}</p>`;
-    answerCounter.html(answerBox);
+console.log(state.idNumber);
+     let correctAnsIndex = state.questions[state.idNumber].correctAnswer;
+     let correctAnsVal = state.questions[state.idNumber].answer[correctAnsIndex];
+    
+
+      let answer = correctAnswerChecker(quiz, checkedVal, correctAnsVal);
+      if(answer === true) {
+        $('#js-feedback').append(`<p><strong>Correct</strong></p>`);
+      } else {
+        $('#js-feedback').append(`<p><strong>Incorrect</strong></p>`);
+      }
+
+    $('#js-current-question').find('> p').addClass('red');
+    $('#js-current-question p').eq(correctAnsIndex).addClass('green');
+    //.css('color', 'green');//this also works when replacing addClass on line 135
+    // console.log($('form#js-current-question p').eq(correctAnsIndex).text());
+    $('#js-current-question').find('button').addClass('hidden');
+
+
+    $('#js-feedback').append(`<form id="js-next"><button type='submit'>Next Question</button></form>`);
+
+    answerCounter.html(answerBox);   
     correctCounter.html(correctBox);
   }
 
@@ -126,34 +156,14 @@ $(function(){
     render();
 
 ///////////////////SUBMIT EVENT LISTENER/////////////////////////
-    $('#js-question').on('submit', '#js-current-question', (event)=>{ //if you run into issues, change .submit to .on(submit)
+    $('#js-question').on('submit', '#js-current-question', event =>{ //if you run into issues, change .submit to .on(submit)
       event.preventDefault();
       let checkedVal = $('input[name="Answers"]:checked').val();
-      selectAnswer(checkedVal);
+      selectAnswer(quiz, checkedVal);
 
-      let correctAnsIndex = quiz.questions[idNumber].correctAnswer;
-      let correctAnsVal = quiz.questions[idNumber].answer[correctAnsIndex];
-      console.log(checkedVal + ', ' + correctAnsVal);
-      //I don't know why it's pushing the checkedVal twice into the correctAnswers
+     
 
-      var answer = correctAnswerChecker(checkedVal, correctAnsVal);
-      // console.info('answer ' , answer);
-      if(answer === true) {
-        $('#js-feedback').append(`<p><strong>Correct</strong></p>`);
-      } else {
-        $('#js-feedback').append(`<p><strong>Incorrect</strong></p>`);
-      }
-
-    $('#js-current-question').find('> p').addClass('red');
-    $('#js-current-question p').eq(correctAnsIndex).addClass('green');
-    //.css('color', 'green');//this also works when replacing addClass on line 135
-    // console.log($('form#js-current-question p').eq(correctAnsIndex).text());
-    $('#js-current-question').find('button').addClass('hidden');
-
-
-    $('#js-feedback').append(`<form id="js-next"><button type='submit'>Next Question</button></form>`);
-
-    questionsIdIteration();
+    questionsIdIteration(quiz);
     // const numberOfQuestions = quiz.questions.length;
     // const numberOfCorrectQuestions = quiz.correctAnswers.length;
     // const answerBox = `<p>Answered so far: ${idNumber}/${numberOfQuestions}</p>`;
@@ -161,7 +171,7 @@ $(function(){
     // $('div.js-answer-counter').html(answerBox);
     // $('div.js-correct-counter').html(correctBox);
 
-    renderCounters();
+    renderCounters(quiz);
 
 
       //pop up window (alert?) that says 'Correct' 
@@ -177,12 +187,12 @@ $(function(){
 ///////////////////NEXT QUESTION EVENT LISTENER/////////////////////////
     $('#js-feedback').on('submit', '#js-next', (event) => {
       event.preventDefault();
-      // var idCheck = questionsIdIteration();
-      console.log(idNumber);
+      
+      console.log('that', quiz.idNumber);
       console.log(quiz.questions.length);
-      if(idNumber !== quiz.questions.length) {
+      if(quiz.idNumber !== quiz.questions.length) {
           console.log('quiz not done, next question. Please');
-          nextQuestion();
+          nextQuestion(quiz);
           render();
         } else {
           console.log('quiz done');
@@ -193,6 +203,8 @@ $(function(){
       $('#js-feedback').html('');
     });
 
+
+///////////////////////////////////LAST PAGE (OUTRO)////////////////////////////
     
 })
 
