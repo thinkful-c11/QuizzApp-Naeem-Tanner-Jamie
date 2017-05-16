@@ -105,6 +105,7 @@ const quiz = {
 console.log(state.idNumber);
      let correctAnsIndex = state.questions[state.idNumber].correctAnswer;
      let correctAnsVal = state.questions[state.idNumber].answer[correctAnsIndex];
+     console.log('THIS IS INDEX', correctAnsIndex)
     
 
       let answer = correctAnswerChecker(quiz, checkedVal, correctAnsVal);
@@ -122,7 +123,7 @@ console.log(state.idNumber);
 
 
     $('#js-feedback').append(`<form id="js-next"><button type='submit'>Next Question</button></form>`);
-
+    questionsIdIteration(quiz);
     answerCounter.html(answerBox);   
     correctCounter.html(correctBox);
   }
@@ -160,10 +161,6 @@ $(function(){
       event.preventDefault();
       let checkedVal = $('input[name="Answers"]:checked').val();
       selectAnswer(quiz, checkedVal);
-
-     
-
-    questionsIdIteration(quiz);
     // const numberOfQuestions = quiz.questions.length;
     // const numberOfCorrectQuestions = quiz.correctAnswers.length;
     // const answerBox = `<p>Answered so far: ${idNumber}/${numberOfQuestions}</p>`;
@@ -172,7 +169,6 @@ $(function(){
     // $('div.js-correct-counter').html(correctBox);
 
     renderCounters(quiz);
-
 
       //pop up window (alert?) that says 'Correct' 
     //   console.log(quiz.userAnswer);
