@@ -23,7 +23,8 @@ const quiz = {
   userAnswer: [], ///////////REVISIT THIS TO REWORK AS AN ARRAY OF NUMBERS LISTING THE ANSWER CHOICES
   correctAnswers: [],
   currentQuestion: null,
-  idNumber: 0,
+  currentAnswerCurrect: true,
+  idNumber: 0
 }
 
 //////////////////////////MOD FUNCTIONS//////////////////////////////////
@@ -54,22 +55,19 @@ const quiz = {
   function correctAnswerChecker(state, userAnswer, correctAnswer) {
     if(userAnswer === correctAnswer) {
         state.correctAnswers.push(userAnswer);
-        return true;
+        state.currentAnswerCurrect = true;
     } else {
-      return false;
+      state.currentAnswerCurrect = false;
     }
   }
 
-  const render = (element = $('div#js-question'), 
-                answerCounter = $('div.js-answer-counter'),
-                 correctCounter = $('div.js-correct-counter'), 
-                 state = quiz)=>{
-
+  const render = (state, element = $('div#js-question'), answerCounter = $('div.js-answer-counter'), correctCounter = $('div.js-correct-counter'))=>{
       const path= state.questions[state.idNumber].answer;
-      const numberOfQuestions = quiz.questions.length;
-      const numberOfCorrectQuestions = quiz.correctAnswers.length;//LOOKIE HERE NAEEM!!!
-      const answerBox = `<p>Answered so far: ${state.idNumber}/${numberOfQuestions}</p>`;
+      const numberOfQuestions = state.questions.length;
+      const numberOfCorrectQuestions = state.correctAnswers.length;//LOOKIE HERE NAEEM!!!
+      const answerBox = `<p>Answered so far: ${state.userAnswer.length}/${numberOfQuestions}</p>`;
       const correctBox = `<p>Correct so far: ${numberOfCorrectQuestions}/${numberOfQuestions}</p>`;
+       console.log("Correct questions", numberOfCorrectQuestions);
       const question =  
         ` <ul>
           <li>${state.questions[state.idNumber].question}</li>
@@ -95,21 +93,18 @@ const quiz = {
 
 
 
-  const renderCounters = (state, answerCounter = $('div.js-answer-counter'),
-                 correctCounter = $('div.js-correct-counter'), checkedVal = $('input[name="Answers"]:checked').val()
-                 ) => {
+  const renderCounters = (state, answerCounter = $('div.js-answer-counter'), 
+    correctCounter = $('div.js-correct-counter'), checkedVal = $('input[name="Answers"]:checked').val()) => {
+
     const numberOfQuestions = state.questions.length;
     const numberOfCorrectQuestions = state.correctAnswers.length;
-    const answerBox = `<p>Answered so far: ${state.idNumber}/${numberOfQuestions}</p>`;
+    let correctAnsIndex = state.questions[state.idNumber].correctAnswer;
+    let correctAnsVal = state.questions[state.idNumber].answer[correctAnsIndex];
+    const answerBox = `<p>Answered so far: ${state.userAnswer.length}/${numberOfQuestions}</p>`;
     const correctBox = `<p>Correct so far: ${numberOfCorrectQuestions}/${numberOfQuestions}</p>`;
-console.log(state.idNumber);
-     let correctAnsIndex = state.questions[state.idNumber].correctAnswer;
-     let correctAnsVal = state.questions[state.idNumber].answer[correctAnsIndex];
-     console.log('THIS IS INDEX', correctAnsIndex)
-    
 
-      let answer = correctAnswerChecker(quiz, checkedVal, correctAnsVal);
-      if(answer === true) {
+      // let answer = correctAnswerChecker(quiz, checkedVal, correctAnsVal);
+      if(state.currentAnswerCurrect === true) {
         $('#js-feedback').append(`<p><strong>Correct</strong></p>`);
       } else {
         $('#js-feedback').append(`<p><strong>Incorrect</strong></p>`);
@@ -123,9 +118,9 @@ console.log(state.idNumber);
 
 
     $('#js-feedback').append(`<form id="js-next"><button type='submit'>Next Question</button></form>`);
-    questionsIdIteration(quiz);
     answerCounter.html(answerBox);   
     correctCounter.html(correctBox);
+        console.log("Correct questions", numberOfCorrectQuestions);
   }
 
 
@@ -154,30 +149,19 @@ console.log(state.idNumber);
 
 $(function(){
 
-    render();
+    render(quiz);
 
 ///////////////////SUBMIT EVENT LISTENER/////////////////////////
     $('#js-question').on('submit', '#js-current-question', event =>{ //if you run into issues, change .submit to .on(submit)
       event.preventDefault();
       let checkedVal = $('input[name="Answers"]:checked').val();
+      let correctAnsIndex = quiz.questions[quiz.idNumber].correctAnswer;
+      let correctAnsVal = quiz.questions[quiz.idNumber].answer[correctAnsIndex];
       selectAnswer(quiz, checkedVal);
-    // const numberOfQuestions = quiz.questions.length;
-    // const numberOfCorrectQuestions = quiz.correctAnswers.length;
-    // const answerBox = `<p>Answered so far: ${idNumber}/${numberOfQuestions}</p>`;
-    // const correctBox = `<p>Correct so far: ${numberOfCorrectQuestions}/${numberOfQuestions}</p>`;
-    // $('div.js-answer-counter').html(answerBox);
-    // $('div.js-correct-counter').html(correctBox);
-
-    renderCounters(quiz);
-
-      //pop up window (alert?) that says 'Correct' 
-    //   console.log(quiz.userAnswer);
-    //   console.log(quiz.correctAnswers);
+      correctAnswerChecker(quiz, checkedVal, correctAnsVal);
+      renderCounters(quiz);
+      questionsIdIteration(quiz);
       console.log(quiz.correctAnswers);
-
-    // questionsIdIteration();
-    // nextQuestion();
-    // render();
     });
 
 ///////////////////NEXT QUESTION EVENT LISTENER/////////////////////////
@@ -189,7 +173,7 @@ $(function(){
       if(quiz.idNumber !== quiz.questions.length) {
           console.log('quiz not done, next question. Please');
           nextQuestion(quiz);
-          render();
+          render(quiz);
         } else {
           console.log('quiz done');
           // call a function, maybe,to display ansers or ....
