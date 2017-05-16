@@ -1,0 +1,42 @@
+h1 {
+	font-family: helvetica;
+	font-size: 2em;
+}
+
+.hidden {
+	display: none;
+}
+
+ul {
+	border: 3px solid black;
+}
+
+li {
+	list-style: none;
+	font-size: 1em;
+	font-family: helvetica;
+	font-weight: 600;
+	margin-bottom: 20px;
+}
+
+p {
+	font-size: 1em;
+	font-family: helvetica;
+	display: inline;
+}
+
+.js-answer-counter {
+  float: left;
+  border: 3px solid black;
+  padding: 10px 20px;
+}
+
+.js-correct-counter {
+  float: right;
+  border: 3px solid black;
+  padding: 10px 20px;
+}
+
+.question-box {
+  padding-top: 40px;
+}
